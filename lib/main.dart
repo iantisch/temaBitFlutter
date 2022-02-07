@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'dart:async';
 
-// statefulwidget project, в нем виджеты имеют наследование
 void main() {
   runApp(
     MyFirstApp(),
