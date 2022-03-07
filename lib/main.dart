@@ -1,85 +1,60 @@
 import 'package:flutter/material.dart';
-
-import 'dart:async';
+import 'package:flutter_weather2/dataservice.dart';
+import 'models.dart';
 
 void main() {
-  runApp(
-    MyFirstApp(),
-  );
+  runApp(MyApp());
 }
 
-class MyFirstApp extends StatefulWidget {
+class MyApp extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    return _MyFirstAppState();
-  }
+  State<StatefulWidget> createState() => _MyAppState();
 }
 
-class _MyFirstAppState extends State<MyFirstApp> {
-  bool _loading = false;
-  double _progressValue = 0.0;
+class _MyAppState extends State<MyApp> {
+  final _cityTextController = TextEditingController();
+  final _dataService = DataService();
 
-  @override
-  void initState() {
-    super.initState();
-  }
+  WeatherResponse _response;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        backgroundColor: Colors.greenAccent,
-        appBar: AppBar(
-          title: const Text("First App"),
-          centerTitle: true,
-        ),
-        body: Center(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            child: _loading
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      LinearProgressIndicator(value: _progressValue),
-                      Text(
-                        '${(_progressValue * 100).round()}%',
-                        style: const TextStyle(color: Colors.red, fontSize: 25),
-                      ),
-                    ],
-                  )
-                : const Text(
-                    "Press button to download",
-                    style: TextStyle(color: Colors.red, fontSize: 25),
+        home: Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (_response != null)
+              Column(
+                children: [
+                  Image.network(_response.iconUrl),
+                  Text(
+                    '${_response.tempInfo.temperature}°',
+                    style: TextStyle(fontSize: 40),
                   ),
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            setState(() {
-              _loading = !_loading;
-              _updateProgress();
-            });
-          },
-          child: const Icon(Icons.cloud_download),
+                  Text(_response.weatherInfo.description)
+                ],
+              ),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 50),
+              child: SizedBox(
+                width: 150,
+                child: TextField(
+                    controller: _cityTextController,
+                    decoration: InputDecoration(labelText: 'City'),
+                    textAlign: TextAlign.center),
+              ),
+            ),
+            ElevatedButton(onPressed: _search, child: Text('Search'))
+          ],
         ),
       ),
-    );
+    ));
   }
 
-  void _updateProgress() {
-    const oneSec = const Duration(seconds: 1);
-    Timer.periodic(oneSec, (Timer t) {
-      setState(() {
-        _progressValue += 0.2;
-
-        if (_progressValue.toStringAsFixed(1) == '1.0') {
-          _loading = false;
-          t.cancel();
-          _progressValue = 0.0;
-          return;
-        }
-      });
-    });
+  void _search() async {
+    final response = await _dataService.getWeather(_cityTextController.text);
+    setState(() => _response = response);
   }
 }
